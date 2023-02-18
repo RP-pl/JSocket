@@ -6,10 +6,10 @@ import JSocket.Utility.DataFrameMetadata;
 import JSocket.Utility.OPCode;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Random;
 
 public class ConnectionIO {
@@ -36,7 +36,7 @@ public class ConnectionIO {
         this(connection);
         this.encrypted = encrypted;
     }
-    public byte[] readBytes() throws ConnectionCloseException, IOException {
+    public byte[] readBytes(boolean multiframe) throws ConnectionCloseException, IOException {
         OPCode opCode = inputStream.getCurrentDataFrameMetadata().OPCode;
         if (opCode == OPCode.CONNECTION_CLOSE_FRAME) {
                 this.connection.close();
@@ -53,13 +53,37 @@ public class ConnectionIO {
             }
         }
         else{
-            return this.inputStream.readAllBytes();
+            if(!multiframe) {
+                return this.inputStream.readAllBytes();
+            }
+            else{
+                byte[] array  = this.inputStream.readAllBytes();
+                while(this.inputStream.getCurrentDataFrameMetadata().isFinished != 1){
+                    array = concatByteArrays(array,this.inputStream.readAllBytes());
+                }
+                return array;
+            }
         }
         return new byte[]{-1};
     }
-    public String readString() throws ConnectionCloseException, IOException {
-        return String.valueOf(toCharArray(readBytes()));
+
+    /**
+     *
+     * @param multiframe if false reads single DataFrame worth of data, when true reads data until DatsFrameMetadata.isFinished is true
+     * @return Bytes from input stream in form of a String
+     * @throws ConnectionCloseException
+     * @throws IOException
+     */
+    public String readString(boolean multiframe) throws ConnectionCloseException, IOException {
+        return String.valueOf(toCharArray(readBytes(multiframe)));
     }
+
+    /**
+     * Checks whether there are bytes to be read in the input stream
+     * @return true if there are bytes to be read, false otherwise
+     * @throws IOException
+     * @throws ConnectionCloseException
+     */
     public boolean canRead() throws IOException, ConnectionCloseException {
         if (this.inputStream.getCurrentDataFrameMetadata().OPCode == OPCode.CONNECTION_CLOSE_FRAME) {
             this.connection.close();
@@ -76,6 +100,11 @@ public class ConnectionIO {
         }
         return array;
     }
+
+    /**
+     * Closes connection
+     * @throws IOException
+     */
     public void close() throws IOException {
         this.inputStream.close();
         this.outputStream.close();
@@ -142,5 +171,10 @@ public class ConnectionIO {
 
     public int[] getRSVCodes() {
         return RSVCodes;
+    }
+    private byte[] concatByteArrays(byte[] array1, byte[] array2) {
+        byte[] result = Arrays.copyOf(array1, array1.length + array2.length);
+        System.arraycopy(array2, 0, result, array1.length, array2.length);
+        return result;
     }
 }

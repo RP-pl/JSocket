@@ -4,7 +4,6 @@ import JSocket.Utility.DataFrameMetadata;
 import JSocket.Utility.Length;
 import JSocket.Utility.OPCode;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Random;
@@ -20,7 +19,7 @@ public class DataFrameOutputStream extends OutputStream {
         this.metadata = new DataFrameMetadata();
         this.metadata.OPCode = OPCode.TEXT_FRAME;
         this.metadata.hasMask = 0;
-        this.metadata.isWhole = 1;
+        this.metadata.isFinished = 1;
     }
 
     private int[] toIntArray(byte[] array) {
@@ -64,7 +63,7 @@ public class DataFrameOutputStream extends OutputStream {
         int currentLength = 2;
         byte[] dataFrame = new byte[initialLength];
         //FIN|RSV1|RSV2|RSV3|OPCode
-        dataFrame[0] = (byte) (this.metadata.isWhole << 7 | this.metadata.RSV1 << 6 | this.metadata.RSV2 << 5 | this.metadata.RSV3 << 4 | returnOPCode(this.metadata.OPCode));
+        dataFrame[0] = (byte) (this.metadata.isFinished << 7 | this.metadata.RSV1 << 6 | this.metadata.RSV2 << 5 | this.metadata.RSV3 << 4 | returnOPCode(this.metadata.OPCode));
         //MASK|PAYLOAD
         if(l == Length.BYTE){
             dataFrame[1] = (byte) (this.metadata.hasMask<<7 |  data.length);

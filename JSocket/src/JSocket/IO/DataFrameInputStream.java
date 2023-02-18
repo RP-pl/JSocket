@@ -2,7 +2,6 @@ package JSocket.IO;
 
 import JSocket.Exceptions.UnknownOPCodeException;
 import JSocket.Utility.DataFrameMetadata;
-import JSocket.Utility.OPCode;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -131,7 +130,7 @@ public class DataFrameInputStream extends InputStream {
         if(first8bits == -1){
             return;
         }
-        this.currentDataFrameMetadata.isWhole = getNthBit(first8bits,8);
+        this.currentDataFrameMetadata.isFinished = getNthBit(first8bits,8);
         this.currentDataFrameMetadata.RSV1 = getNthBit(first8bits,7);
         this.currentDataFrameMetadata.RSV2 = getNthBit(first8bits,6);
         this.currentDataFrameMetadata.RSV3 = getNthBit(first8bits,5);
