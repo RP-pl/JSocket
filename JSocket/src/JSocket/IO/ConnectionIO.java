@@ -114,13 +114,19 @@ public class ConnectionIO {
     /**
      * Writes given bytes to the output stream as a DataFrame. Continues parameter indicates
      * whether the OPCode should be {@code OPCode.CONTINUATION_FRAME}
-     * @param data
+     * @param data to be written to the stream
      * @param continued indicates whether this portion of data will be continued by the next portion of data from a given source
      */
     public void writeBytes(byte[] data,boolean continued) throws IOException {
         setMetadata(data.length,continued);
         this.outputStream.write(data);
     }
+
+    /**
+     * Writes string data encoded in UTF-8 as a single DataFrame to the output stream
+     * @param data
+     * @throws IOException
+     */
     public void writeString(String data) throws IOException {
         setMetadata(data.length(),false);
         DataFrameMetadata dfm = this.outputStream.getMetadata();
