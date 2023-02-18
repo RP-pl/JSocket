@@ -7,7 +7,7 @@ import java.io.*;
 import java.math.BigInteger;
 
 public class DataFrameInputStream extends InputStream {
-    private InputStream inputStream;
+    private final InputStream inputStream;
     private long extensionDataLength;
     private int currentMaskPosition = 0;
     private File extensionData;
@@ -84,20 +84,22 @@ public class DataFrameInputStream extends InputStream {
         return bytes;
     }
 
-    @Override
+
     /**
      * Reads whole remaining DataFrame's payload. This method is not intended for fetching large amounts of data
      * (especially not larger than Integer.MAX_VALUE)
     */
+    @Override
     public byte[] readAllBytes() throws IOException {
         return this.readNBytes(this.currentDataFrameMetadata.payloadLength.intValue());
     }
 
-    @Override
+
     /**
      * Skips n bytes from the DataFrame's payload. If n is greater than payload length skips only to the next frame
      * @return Returns number of bytes skipped
      */
+    @Override
     public long skip(long n) throws IOException {
         long skipped;
         if(this.currentDataFrameMetadata.payloadLength.compareTo(new BigInteger(String.valueOf(n))) == 1){
@@ -217,6 +219,11 @@ public class DataFrameInputStream extends InputStream {
             throw new UnknownOPCodeException("Unknown OPCode passed by a client");
         }
     }
+
+    /**
+     * Closes input stream
+     * @throws IOException
+     */
     @Override
     public void close() throws IOException {
         this.inputStream.close();

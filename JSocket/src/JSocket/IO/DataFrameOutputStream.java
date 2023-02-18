@@ -3,16 +3,15 @@ package JSocket.IO;
 import JSocket.Utility.DataFrameMetadata;
 import JSocket.Utility.Length;
 import JSocket.Utility.OPCode;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Random;
 
 public class DataFrameOutputStream extends OutputStream {
-    private OutputStream outputStream;
+    private final OutputStream outputStream;
 
     private DataFrameMetadata metadata;
-    private final Random random = new Random();
     public DataFrameOutputStream(OutputStream output) {
         this.outputStream = output;
         //Default implementation
@@ -86,14 +85,12 @@ public class DataFrameOutputStream extends OutputStream {
             }
             currentLength+=8;
         }
-        for (int i = 0; i < data.length; i++) {
-            dataFrame[currentLength+i] = data[i];
-        }
+        System.arraycopy(data, 0, dataFrame, currentLength, data.length);
         return dataFrame;
     }
 
     @Override
-    public void write(byte[] b) throws IOException {
+    public void write(byte @NotNull [] b) throws IOException {
         this.outputStream.write(assembleDataFrame(b));
     }
     public void pong(byte[] dataFrameBytes) throws IOException {
@@ -113,7 +110,7 @@ public class DataFrameOutputStream extends OutputStream {
     /**
      * Returns binary representation of a given OPCode.
      * WARNING: NON_CONTROL_FRAME and FURTHER_CONTROL_FRAME not implemented!!!
-     * @param opCode
+     * @param opCode OPCode of the DataFrame
      * @return Binary representation of a given OPCode
      */
     private byte returnOPCode(OPCode opCode){
