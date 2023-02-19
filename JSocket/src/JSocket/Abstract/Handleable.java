@@ -1,4 +1,4 @@
-package JSocket.Interfaces;
+package JSocket.Abstract;
 
 import JSocket.Exceptions.ConnectionCloseException;
 import JSocket.IO.ConnectionIO;

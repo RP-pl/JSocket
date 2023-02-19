@@ -1,10 +1,9 @@
 package JSocket.Utility;
 
+import JSocket.Abstract.Connection;
 import JSocket.Exceptions.ConnectionCloseException;
 import JSocket.IO.ConnectionIO;
-import JSocket.Interfaces.Handleable;
-import JSocket.IO.DataFrameInputStream;
-import JSocket.IO.DataFrameOutputStream;
+import JSocket.Abstract.Handleable;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,7 +12,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-public class Connection implements Runnable {
+/**
+ * Basic implementation of initial WebSocket connection establishment.
+ * This implementation handles no additional protocols.
+ * Prone to Denial-of-Service attack.
+ */
+public class BasicConnection extends Connection {
     private Handleable handler;
     private Socket client;
     private MessageDigest sha1;
@@ -21,9 +25,16 @@ public class Connection implements Runnable {
     private OutputStream output;
     private static Set<String> connectedClients = Collections.synchronizedSet(new HashSet<>());
 
-    public Connection(Socket client, Handleable handler){
+    public BasicConnection(Socket client, Handleable handler){
         this.client = client;
         this.handler = handler;
+        try {
+            this.sha1 = MessageDigest.getInstance("SHA-1");
+        }
+        catch (NoSuchAlgorithmException ignored){
+        }
+    }
+    public BasicConnection(){
         try {
             this.sha1 = MessageDigest.getInstance("SHA-1");
         }
@@ -46,8 +57,8 @@ public class Connection implements Runnable {
             throw new RuntimeException(e);
         }
     }
-
-    private void doHandshake() throws IOException {
+    @Override
+    protected void doHandshake() throws IOException {
         Scanner inputScanner = new Scanner(this.input,"UTF-8");
         inputScanner.useDelimiter("\\r\\n\\r\\n");
         Map<String,String> headers = parseHttpRequest(inputScanner.next());
@@ -83,5 +94,13 @@ public class Connection implements Runnable {
         byte[] hash = this.sha1.digest(key.getBytes(StandardCharsets.UTF_8));
         String encodedString = Base64.getEncoder().encodeToString(hash);
         return encodedString;
+    }
+    @Override
+    public void setClient(Socket client){
+        this.client = client;
+    }
+    @Override
+    public void setHandler(Handleable handler){
+        this.handler = handler;
     }
 }
