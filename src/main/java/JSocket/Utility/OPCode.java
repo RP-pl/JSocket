@@ -1,5 +1,8 @@
 package JSocket.Utility;
 
+/**
+ * This enum is used to identify the type of frame being sent
+ */
 public enum OPCode {
     CONTINUATION_FRAME,
     TEXT_FRAME,

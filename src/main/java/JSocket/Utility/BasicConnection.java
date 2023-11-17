@@ -59,7 +59,7 @@ public class BasicConnection extends Connection {
     }
     @Override
     protected void doHandshake() throws IOException {
-        Scanner inputScanner = new Scanner(this.input,"UTF-8");
+        Scanner inputScanner = new Scanner(this.input,StandardCharsets.UTF_8);
         inputScanner.useDelimiter("\\r\\n\\r\\n");
         Map<String,String> headers = parseHttpRequest(inputScanner.next());
         //TODO Implement additional protocol handling
@@ -92,8 +92,7 @@ public class BasicConnection extends Connection {
         String clientKey = headers.get("Sec-WebSocket-Key");
         String key = clientKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
         byte[] hash = this.sha1.digest(key.getBytes(StandardCharsets.UTF_8));
-        String encodedString = Base64.getEncoder().encodeToString(hash);
-        return encodedString;
+        return Base64.getEncoder().encodeToString(hash);
     }
     @Override
     public void setClient(Socket client){

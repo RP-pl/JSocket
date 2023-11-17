@@ -11,8 +11,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class JSocket {
-    private ServerSocket server;
-    private Handleable handler;
+    private final ServerSocket server;
+    private final Handleable handler;
     private Connection connection;
     private ThreadPoolExecutor tpe;
     public JSocket(Handleable handler,int port) throws ConnectionException {
@@ -28,13 +28,13 @@ public class JSocket {
 
     /**
      *
-     * @param handler implementation of an interface Handleable.
+     * @param connectionHandler implementation of an interface Handleable. Contains method handle which is called when client connects.
      * @param port port on which server should operate.
-     * @param connection this argument should be passed as Connection implementation without client or handler set.
+     * @param connection this argument should be passed as Connection implementation without client or connectionHandler set.
      * @throws ConnectionException
      */
-    public JSocket(Handleable handler,int port,Connection connection) throws ConnectionException {
-        this(handler, port);
+    public JSocket(Handleable connectionHandler, int port, Connection connection) throws ConnectionException {
+        this(connectionHandler, port);
         this.connection = connection;
     }
     public void runAsynchronously(int numberOfThreads) throws ConnectionException {

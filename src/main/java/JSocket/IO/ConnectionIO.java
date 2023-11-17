@@ -5,14 +5,22 @@ import JSocket.Exceptions.UnknownOPCodeException;
 import JSocket.Utility.DataFrameMetadata;
 import JSocket.Utility.OPCode;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 
-public class ConnectionIO {
+/**
+ * This class is used to handle data exchange between Server and Client
+ * It provides methods to read and write data in form of bytes and Strings
+ * It provides methods to read and write data in form of DataFrames.
+ * It also provides methods to read and write data manually using InputStream and OutputStream
+ */
+public class ConnectionIO implements Closeable,AutoCloseable,Readable {
     private boolean encrypted;
     private Socket connection;
     private final Random random = new Random();
@@ -101,6 +109,7 @@ public class ConnectionIO {
         return array;
     }
 
+    @Override
     /**
      * Closes connection
      * @throws IOException
@@ -182,5 +191,37 @@ public class ConnectionIO {
         byte[] result = Arrays.copyOf(array1, array1.length + array2.length);
         System.arraycopy(array2, 0, result, array1.length, array2.length);
         return result;
+    }
+
+    @Override
+    public int read(CharBuffer cb) throws IOException {
+        String data;
+        try {
+            data = this.readString(true);
+            cb.append(data);
+        } catch (ConnectionCloseException e) {
+            throw new IOException(e);
+        }
+        int dataLength = data.length();
+        return dataLength > 0 ? dataLength : -1;
+    }
+    /**
+     * Returns input stream of this connection
+     * This method enables user to use InputStream manually.
+     * When handling Stream manually user has to set metadata manually.
+     * @return DataFrameInputStream
+     */
+    public DataFrameInputStream getInputStream(){
+        return this.inputStream;
+    }
+
+    /**
+     * Returns output stream of this connection
+     * This method enables user to use OutputStream manually.
+     * When handling Stream manually user has to set metadata manually.
+     * @return DataFrameOutputStream
+     */
+    public DataFrameOutputStream getOutputStream(){
+        return this.outputStream;
     }
 }

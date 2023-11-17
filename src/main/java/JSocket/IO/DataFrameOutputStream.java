@@ -89,6 +89,11 @@ public class DataFrameOutputStream extends OutputStream {
         return dataFrame;
     }
 
+    /**
+     * Writes bytes from the specified byte array
+     * @param b   the {@code bytes} of data to be written as a single DataFrame.
+     * @throws IOException
+     */
     @Override
     public void write(byte @NotNull [] b) throws IOException {
         this.outputStream.write(assembleDataFrame(b));
