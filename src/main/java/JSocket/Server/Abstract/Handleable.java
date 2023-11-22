@@ -1,7 +1,7 @@
-package JSocket.Abstract;
+package JSocket.Server.Abstract;
 
-import JSocket.Exceptions.ConnectionCloseException;
-import JSocket.IO.ConnectionIO;
+import JSocket.Server.Exceptions.ConnectionCloseException;
+import JSocket.Server.IO.ConnectionIO;
 
 
 /**

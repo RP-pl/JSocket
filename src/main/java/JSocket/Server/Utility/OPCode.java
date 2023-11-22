@@ -1,4 +1,4 @@
-package JSocket.Utility;
+package JSocket.Server.Utility;
 
 /**
  * This enum is used to identify the type of frame being sent

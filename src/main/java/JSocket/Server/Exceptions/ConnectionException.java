@@ -1,4 +1,4 @@
-package JSocket.Exceptions;
+package JSocket.Server.Exceptions;
 
 /**
  * This exception is thrown when client is unable to connect to the server

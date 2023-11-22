@@ -1,8 +1,8 @@
-package JSocket.IO;
+package JSocket.Server.IO;
 
-import JSocket.Utility.DataFrameMetadata;
-import JSocket.Utility.Length;
-import JSocket.Utility.OPCode;
+import JSocket.Server.Utility.DataFrameMetadata;
+import JSocket.Server.Utility.Length;
+import JSocket.Server.Utility.OPCode;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

@@ -1,12 +1,16 @@
-package JSocket.Utility;
+package JSocket.Server.Utility;
+
+import JSocket.Server.IO.ConnectionIO;
+import JSocket.Server.IO.DataFrameInputStream;
+import JSocket.Server.IO.DataFrameOutputStream;
 
 import java.math.BigInteger;
 
 /**
  * This class is used to store the metadata of the data frame
- * @see JSocket.IO.ConnectionIO
- * @see JSocket.IO.DataFrameOutputStream
- * @see JSocket.IO.DataFrameInputStream
+ * @see ConnectionIO
+ * @see DataFrameOutputStream
+ * @see DataFrameInputStream
  */
 public class DataFrameMetadata {
     public int isFinished;

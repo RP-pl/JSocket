@@ -1,9 +1,9 @@
-package JSocket.IO;
+package JSocket.Server.IO;
 
-import JSocket.Exceptions.ConnectionCloseException;
-import JSocket.Exceptions.UnknownOPCodeException;
-import JSocket.Utility.DataFrameMetadata;
-import JSocket.Utility.OPCode;
+import JSocket.Server.Exceptions.ConnectionCloseException;
+import JSocket.Server.Exceptions.UnknownOPCodeException;
+import JSocket.Server.Utility.DataFrameMetadata;
+import JSocket.Server.Utility.OPCode;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -22,12 +22,18 @@ import java.util.Random;
  */
 public class ConnectionIO implements Closeable,AutoCloseable,Readable {
     private boolean encrypted;
-    private Socket connection;
+    private final Socket connection;
     private final Random random = new Random();
-    private DataFrameInputStream inputStream;
-    private DataFrameOutputStream outputStream;
+    private final DataFrameInputStream inputStream;
+    private final DataFrameOutputStream outputStream;
     private boolean previousFinished = true;
     private int[] RSVCodes = new int[]{0,0,0};
+
+    /**
+     * Creates ConnectionIO object from given Socket, unencrypted by default
+     * @param connection Socket to be used for data exchange
+     * @throws IOException if any kind of I/O error occurs
+     */
     public ConnectionIO(Socket connection) throws IOException {
         this.connection = connection;
         this.encrypted = false;
@@ -40,6 +46,13 @@ public class ConnectionIO implements Closeable,AutoCloseable,Readable {
             throw new ConnectException();
         }
     }
+
+    /**
+     * Creates ConnectionIO object from given Socket, encrypted by default
+     * @param connection Socket to be used for data exchange
+     * @param encrypted indicates whether the data exchange should be encrypted
+     * @throws IOException if connection has been closed
+     */
     public ConnectionIO(Socket connection,boolean encrypted) throws IOException {
         this(connection);
         this.encrypted = encrypted;
@@ -79,8 +92,8 @@ public class ConnectionIO implements Closeable,AutoCloseable,Readable {
      *
      * @param multiframe if false reads single DataFrame worth of data, when true reads data until DatsFrameMetadata.isFinished is true
      * @return Bytes from input stream in form of a String
-     * @throws ConnectionCloseException
-     * @throws IOException
+     * @throws ConnectionCloseException if connection has been closed
+     * @throws IOException if an I/O error occurs
      */
     public String readString(boolean multiframe) throws ConnectionCloseException, IOException {
         return String.valueOf(toCharArray(readBytes(multiframe)));
@@ -89,8 +102,8 @@ public class ConnectionIO implements Closeable,AutoCloseable,Readable {
     /**
      * Checks whether there are bytes to be read in the input stream
      * @return true if there are bytes to be read, false otherwise
-     * @throws IOException
-     * @throws ConnectionCloseException
+     * @throws IOException if an I/O error occurs
+     * @throws ConnectionCloseException if connection has been closed
      */
     public boolean canRead() throws IOException, ConnectionCloseException {
         if (this.inputStream.getCurrentDataFrameMetadata().OPCode == OPCode.CONNECTION_CLOSE_FRAME) {
@@ -109,11 +122,11 @@ public class ConnectionIO implements Closeable,AutoCloseable,Readable {
         return array;
     }
 
-    @Override
     /**
      * Closes connection
      * @throws IOException
      */
+    @Override
     public void close() throws IOException {
         this.inputStream.close();
         this.outputStream.close();
@@ -133,8 +146,8 @@ public class ConnectionIO implements Closeable,AutoCloseable,Readable {
 
     /**
      * Writes string data encoded in UTF-8 as a single DataFrame to the output stream
-     * @param data
-     * @throws IOException
+     * @param data to be written to the stream
+     * @throws IOException if an I/O error occurs
      */
     public void writeString(String data) throws IOException {
         setMetadata(data.length(),false);
@@ -193,6 +206,12 @@ public class ConnectionIO implements Closeable,AutoCloseable,Readable {
         return result;
     }
 
+    /**
+     * Reads data from the input stream and writes it to the given buffer
+     * @param cb the buffer to read characters into
+     * @return number of characters read or -1 if the end of the stream has been reached
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     public int read(CharBuffer cb) throws IOException {
         String data;
