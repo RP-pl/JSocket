@@ -1,7 +1,7 @@
-package JSocket.Server.IO;
+package JSocket.Common.IO;
 
-import JSocket.Server.Exceptions.UnknownOPCodeException;
-import JSocket.Server.Utility.DataFrameMetadata;
+import JSocket.Common.IO.Utility.DataFrameMetadata;
+import JSocket.Common.Exceptions.UnknownOPCodeException;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -191,29 +191,29 @@ public class DataFrameInputStream extends InputStream {
         int OPCode = data & 15;
         switch (OPCode) {
             case 0:
-                this.currentDataFrameMetadata.OPCode = JSocket.Server.Utility.OPCode.CONTINUATION_FRAME;
+                this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.CONTINUATION_FRAME;
                 return;
             case 1:
-                this.currentDataFrameMetadata.OPCode = JSocket.Server.Utility.OPCode.TEXT_FRAME;
+                this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.TEXT_FRAME;
                 return;
             case 2:
-                this.currentDataFrameMetadata.OPCode = JSocket.Server.Utility.OPCode.BINARY_FRAME;
+                this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.BINARY_FRAME;
                 return;
             case 8:
-                this.currentDataFrameMetadata.OPCode = JSocket.Server.Utility.OPCode.CONNECTION_CLOSE_FRAME;
+                this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.CONNECTION_CLOSE_FRAME;
                 return;
             case 9:
-                this.currentDataFrameMetadata.OPCode = JSocket.Server.Utility.OPCode.PING;
+                this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.PING;
                 return;
             case 10:
-                this.currentDataFrameMetadata.OPCode = JSocket.Server.Utility.OPCode.PONG;
+                this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.PONG;
                 return;
         }
         if(OPCode<8 && OPCode>2){
-            this.currentDataFrameMetadata.OPCode = JSocket.Server.Utility.OPCode.NON_CONTROL_FRAME;
+            this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.NON_CONTROL_FRAME;
         }
         else if(OPCode>10){
-            this.currentDataFrameMetadata.OPCode = JSocket.Server.Utility.OPCode.FURTHER_CONTROL_FRAME;
+            this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.FURTHER_CONTROL_FRAME;
         }
         else{
             throw new UnknownOPCodeException("Unknown OPCode passed by a client");

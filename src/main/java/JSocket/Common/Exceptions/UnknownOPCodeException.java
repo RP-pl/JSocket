@@ -1,4 +1,4 @@
-package JSocket.Server.Exceptions;
+package JSocket.Common.Exceptions;
 
 /**
  * This exception is thrown when an unknown OPCode is received

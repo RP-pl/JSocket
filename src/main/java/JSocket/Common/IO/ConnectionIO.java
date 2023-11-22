@@ -1,9 +1,9 @@
-package JSocket.Server.IO;
+package JSocket.Common.IO;
 
+import JSocket.Common.IO.Utility.DataFrameMetadata;
+import JSocket.Common.IO.Utility.OPCode;
 import JSocket.Server.Exceptions.ConnectionCloseException;
-import JSocket.Server.Exceptions.UnknownOPCodeException;
-import JSocket.Server.Utility.DataFrameMetadata;
-import JSocket.Server.Utility.OPCode;
+import JSocket.Common.Exceptions.UnknownOPCodeException;
 
 import java.io.Closeable;
 import java.io.IOException;

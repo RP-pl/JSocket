@@ -1,8 +1,9 @@
-package JSocket.Server.Utility;
+package JSocket.Common.IO.Utility;
 
-import JSocket.Server.IO.ConnectionIO;
-import JSocket.Server.IO.DataFrameInputStream;
-import JSocket.Server.IO.DataFrameOutputStream;
+import JSocket.Common.IO.ConnectionIO;
+import JSocket.Common.IO.DataFrameInputStream;
+import JSocket.Common.IO.DataFrameOutputStream;
+import JSocket.Common.IO.Utility.OPCode;
 
 import java.math.BigInteger;
 
@@ -17,7 +18,7 @@ public class DataFrameMetadata {
     public int RSV1;
     public int RSV2;
     public int RSV3;
-    public OPCode OPCode;
+    public JSocket.Common.IO.Utility.OPCode OPCode;
     public int hasMask;
     public int[] mask;
     public BigInteger payloadLength;

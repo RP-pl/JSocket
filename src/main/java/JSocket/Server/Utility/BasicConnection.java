@@ -2,7 +2,7 @@ package JSocket.Server.Utility;
 
 import JSocket.Server.Abstract.Connection;
 import JSocket.Server.Exceptions.ConnectionCloseException;
-import JSocket.Server.IO.ConnectionIO;
+import JSocket.Common.IO.ConnectionIO;
 import JSocket.Server.Abstract.Handleable;
 
 import java.io.*;

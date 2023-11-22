@@ -1,6 +1,7 @@
-package JSocket.Client.Handlers;
+package JSocket.Client.Utility;
 
 import JSocket.Client.Exceptions.ProtocolSwitchException;
+import JSocket.Client.Abstract.ConnectionSwitchHandler;
 
 import java.io.*;
 import java.net.Socket;

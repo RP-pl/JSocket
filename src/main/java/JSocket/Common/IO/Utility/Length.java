@@ -1,4 +1,4 @@
-package JSocket.Server.Utility;
+package JSocket.Common.IO.Utility;
 
 
 /**
