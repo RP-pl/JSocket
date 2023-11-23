@@ -15,10 +15,11 @@ server.runSynchronously();
 
 ### Client
 ```java
-JSocketClient client = new JSocketClient("localhost", 8080, "/test");
+JSocketClient client = new JSocketClient("http://localhost:8080");
 ConnectionIO io = client.getConnectionIO();
 io.writeString("Hello World!");
 System.out.println(io.readString(false));
+io.close();
 ```
 
 ## Additional protocols

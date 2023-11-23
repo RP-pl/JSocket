@@ -7,6 +7,7 @@ import JSocket.Common.IO.ConnectionIO;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URL;
 
 public class JSocketClient {
     final Socket socket;
@@ -19,6 +20,14 @@ public class JSocketClient {
 
     public JSocketClient(String host,int port, String connectionEndpoint) throws IOException, ProtocolSwitchException {
         this(host,port,connectionEndpoint,new BasicConnectionSwitchHandler());
+    }
+
+    public JSocketClient(URL connection) throws IOException, ProtocolSwitchException {
+        this(connection.getHost(),connection.getPort(),connection.getPath().isEmpty() ? "/" : connection.getPath(),new BasicConnectionSwitchHandler());
+    }
+
+    public JSocketClient(String connection) throws IOException, ProtocolSwitchException {
+        this(new URL(connection));
     }
 
     public JSocketClient(String host,int port) throws IOException, ProtocolSwitchException {
