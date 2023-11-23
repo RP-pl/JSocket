@@ -28,7 +28,7 @@ public class BasicConnectionSwitchHandler implements ConnectionSwitchHandler {
 
         UUID guid = UUID.randomUUID();
         String key = Base64.getEncoder().encodeToString(sha1.digest(guid.toString().getBytes()));
-        String request = "GET " + connectionEndpoint + "HTTP 1.1\r\n" +
+        String request = "GET " + connectionEndpoint + " HTTP 1.1\r\n" +
                          "Upgrade: websocket\r\n" +
                          "Connection: Upgrade\r\n" +
                          "Sec-WebSocket-Key: " + key +

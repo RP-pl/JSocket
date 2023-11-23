@@ -20,16 +20,17 @@ import static JSocket.Common.ParseUtil.parseHttpRequest;
  * Prone to Denial-of-Service attack.
  */
 public class BasicConnection extends Connection {
-    private Handleable handler;
+    private Map<String,Handleable> endpoints;
     private Socket client;
     private MessageDigest sha1;
     private InputStream input;
     private OutputStream output;
-    private static Set<String> connectedClients = Collections.synchronizedSet(new HashSet<>());
+    private static final Set<String> connectedClients = Collections.synchronizedSet(new HashSet<>());
+    private Handleable handler;
 
-    public BasicConnection(Socket client, Handleable handler){
+    public BasicConnection(Socket client, Map<String,Handleable> endpoints){
         this.client = client;
-        this.handler = handler;
+        this.endpoints = endpoints;
         try {
             this.sha1 = MessageDigest.getInstance("SHA-1");
         }
@@ -64,13 +65,13 @@ public class BasicConnection extends Connection {
         Scanner inputScanner = new Scanner(this.input,StandardCharsets.UTF_8);
         inputScanner.useDelimiter("\\r\\n\\r\\n");
         Map<String,String> headers = parseHttpRequest(inputScanner.next());
+        this.handler = this.endpoints.getOrDefault(headers.get("endpoint"),this.endpoints.get("/"));
         String key = getWebSocketKey(headers);
         byte[] response = ("HTTP/1.1 101 Switching Protocols\r\n" +
                 "Upgrade: websocket\r\n" +
                 "Connection: Upgrade\r\n"+
                 "Sec-WebSocket-Accept: " + key + "\r\n"+"\r\n").getBytes(StandardCharsets.UTF_8);
-
-        this.output.write(response,0, response.length);;
+        this.output.write(response,0, response.length);
 
     }
 
@@ -85,8 +86,9 @@ public class BasicConnection extends Connection {
     public void setClient(Socket client){
         this.client = client;
     }
+
     @Override
-    public void setHandler(Handleable handler){
-        this.handler = handler;
+    public void setEndpoints(Map<String,Handleable> endpoints){
+        this.endpoints = endpoints;
     }
 }

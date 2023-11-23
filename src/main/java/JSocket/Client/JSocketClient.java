@@ -18,12 +18,13 @@ public class JSocketClient {
     }
 
     public JSocketClient(String host,int port, String connectionEndpoint) throws IOException, ProtocolSwitchException {
-        this(host,port,"/",new BasicConnectionSwitchHandler());
+        this(host,port,connectionEndpoint,new BasicConnectionSwitchHandler());
     }
 
     public JSocketClient(String host,int port) throws IOException, ProtocolSwitchException {
         this(host,port,"/",new BasicConnectionSwitchHandler());
     }
+
 
     private void switchProtocolToWebsocket(ConnectionSwitchHandler connectionSwitchHandler, String connectionEndpoint) throws IOException, ProtocolSwitchException {
         connectionSwitchHandler.switchProtocol(this.socket, connectionEndpoint);

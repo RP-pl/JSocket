@@ -2,6 +2,7 @@ package JSocket.Server.Abstract;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Map;
 
 public abstract class Connection implements Runnable,Cloneable {
     /**
@@ -16,11 +17,12 @@ public abstract class Connection implements Runnable,Cloneable {
      * It has to call {@code  handler.handle(connection);}
      */
     public abstract void run();
-    public abstract void setHandler(Handleable handler);
     public abstract void setClient(Socket client);
 
     @Override
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
+    public abstract void setEndpoints(Map<String, Handleable> endpoints);
 }

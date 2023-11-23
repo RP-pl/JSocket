@@ -8,34 +8,37 @@ import JSocket.Server.Utility.BasicConnection;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class JSocketServer implements Closeable,AutoCloseable {
     private final ServerSocket server;
-    private final Handleable handler;
     private Connection connection;
     private ThreadPoolExecutor tpe;
-    public JSocketServer(Handleable handler, int port) throws ConnectionException {
+
+    private final Map<String,Handleable> endpoints = new ConcurrentHashMap<>();
+
+    public JSocketServer(Handleable defaultHandler, int port) throws ConnectionException {
         try {
             this.server = new ServerSocket(port);
-            this.handler = handler;
             this.connection = new BasicConnection();
+            this.endpoints.put("/",defaultHandler);
         }
         catch (IOException e){
             throw new ConnectionException("Could not open Socket on port " + String.valueOf(port));
         }
     }
-
     /**
      *
-     * @param connectionHandler implementation of an interface Handleable. Contains method handle which is called when client connects.
+     * @param defaultHandler implementation of an interface Handleable. Contains method handle which is called when client connects.
      * @param port port on which server should operate.
      * @param connection this argument should be passed as Connection implementation without client or connectionHandler set.
      * @throws ConnectionException
      */
-    public JSocketServer(Handleable connectionHandler, int port, Connection connection) throws ConnectionException {
-        this(connectionHandler, port);
+    public JSocketServer(Handleable defaultHandler, int port, Connection connection) throws ConnectionException {
+        this(defaultHandler, port);
         this.connection = connection;
     }
     public void runAsynchronously(int numberOfThreads) throws ConnectionException {
@@ -43,7 +46,6 @@ public class JSocketServer implements Closeable,AutoCloseable {
         while (true){
             try {
                 Connection c = (Connection) this.connection.clone();
-                c.setHandler(this.handler);
                 c.setClient(this.server.accept());
                 tpe.execute(c);
             }
@@ -63,14 +65,23 @@ public class JSocketServer implements Closeable,AutoCloseable {
     public void runOnce() throws ConnectionException {
         try {
             Connection c = (Connection) this.connection.clone();
-            c.setHandler(this.handler);
             c.setClient(this.server.accept());
+            c.setEndpoints(this.endpoints);
             c.run();
         } catch (IOException e) {
             throw new ConnectionException("Could not sustain connection with the client");
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Adds endpoint to the server. Endpoints should be added before server is started.
+     * @param endpoint - endpoint to be added
+     * @param handler - implementation of Handleable interface
+     */
+    public void addEndpoint(String endpoint, Handleable handler){
+        this.endpoints.put(endpoint,handler);
     }
     @Override
     public void close() throws IOException {

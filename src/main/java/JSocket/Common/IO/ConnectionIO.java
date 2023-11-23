@@ -224,6 +224,7 @@ public class ConnectionIO implements Closeable,AutoCloseable,Readable {
         int dataLength = data.length();
         return dataLength > 0 ? dataLength : -1;
     }
+
     /**
      * Returns input stream of this connection
      * This method enables user to use InputStream manually.

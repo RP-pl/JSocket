@@ -209,7 +209,7 @@ public class DataFrameInputStream extends InputStream {
                 this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.PONG;
                 return;
         }
-        if(OPCode<8 && OPCode>2){
+        if(OPCode<8){
             this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.NON_CONTROL_FRAME;
         }
         else if(OPCode>10){
