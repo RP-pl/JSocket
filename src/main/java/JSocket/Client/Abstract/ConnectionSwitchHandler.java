@@ -9,7 +9,8 @@ public interface ConnectionSwitchHandler {
 
     /**
      * This method is used to switch the protocol of the socket to websocket
-     * @param socket - Socket to switch the protocol of
+     *
+     * @param socket             - Socket to switch the protocol of
      * @param connectionEndpoint - An endpoint to which client should connect to
      */
     void switchProtocol(Socket socket, String connectionEndpoint, boolean ssl) throws IOException, ProtocolSwitchException;

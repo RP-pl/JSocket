@@ -7,6 +7,6 @@ import JSocket.Common.IO.ConnectionIO;
 /**
  * This interface is used by the Connection class to handle data exchange between Server and Client
  */
-public interface Handleable{
+public interface Handleable {
     void handle(ConnectionIO io) throws ConnectionCloseException;
 }

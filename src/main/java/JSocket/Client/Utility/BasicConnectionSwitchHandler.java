@@ -17,17 +17,16 @@ public class BasicConnectionSwitchHandler implements ConnectionSwitchHandler {
     }
 
     @Override
-    public void switchProtocol(Socket socket,String connectionEndpoint,boolean ssl) throws IOException, ProtocolSwitchException {
+    public void switchProtocol(Socket socket, String connectionEndpoint, boolean ssl) throws IOException, ProtocolSwitchException {
 
         MessageDigest sha1;
         try {
             sha1 = MessageDigest.getInstance("SHA-1");
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        if(ssl){
+        if (ssl) {
             SSLSocket sslSocket = (SSLSocket) socket;
             sslSocket.startHandshake();
         }
@@ -35,30 +34,30 @@ public class BasicConnectionSwitchHandler implements ConnectionSwitchHandler {
         UUID guid = UUID.randomUUID();
         String key = Base64.getEncoder().encodeToString(sha1.digest(guid.toString().getBytes()));
         String request = "GET " + connectionEndpoint + " HTTP 1.1\r\n" +
-                         "Upgrade: websocket\r\n" +
-                         "Connection: Upgrade\r\n" +
-                         "Sec-WebSocket-Key: " + key +
-                         "\r\nSec-WebSocket-Version: 13\r\n\r\n";
+                "Upgrade: websocket\r\n" +
+                "Connection: Upgrade\r\n" +
+                "Sec-WebSocket-Key: " + key +
+                "\r\nSec-WebSocket-Version: 13\r\n\r\n";
         OutputStream output = socket.getOutputStream();
 
 
         byte[] requestBytes = request.getBytes(StandardCharsets.UTF_8);
-        output.write(requestBytes,0,requestBytes.length);
-        Scanner inputScanner = new Scanner(socket.getInputStream(),StandardCharsets.UTF_8);
+        output.write(requestBytes, 0, requestBytes.length);
+        Scanner inputScanner = new Scanner(socket.getInputStream(), StandardCharsets.UTF_8);
         inputScanner.useDelimiter("\\r\\n\\r\\n");
-        Map<String,String> headers = parseHttpRequest(inputScanner.next());
-        if (!headers.get("Upgrade").equals("websocket")){
+        Map<String, String> headers = parseHttpRequest(inputScanner.next());
+        if (!headers.get("Upgrade").equals("websocket")) {
             throw new ProtocolSwitchException("Server did not accept websocket protocol");
         }
     }
 
     @Override
     public void switchProtocol(Socket socket) throws IOException, ProtocolSwitchException {
-        this.switchProtocol(socket,"/",false);
+        this.switchProtocol(socket, "/", false);
     }
 
     @Override
     public void switchProtocol(Socket socket, boolean ssl) throws IOException, ProtocolSwitchException {
-        this.switchProtocol(socket,"/",ssl);
+        this.switchProtocol(socket, "/", ssl);
     }
 }

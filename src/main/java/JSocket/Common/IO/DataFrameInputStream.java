@@ -16,21 +16,23 @@ public class DataFrameInputStream extends InputStream {
     public DataFrameInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
         this.currentDataFrameMetadata = new DataFrameMetadata();
-        this.extensionDataLength =0;
+        this.extensionDataLength = 0;
     }
-    public DataFrameInputStream(InputStream inputStream,long extensionDataLength){
+
+    public DataFrameInputStream(InputStream inputStream, long extensionDataLength) {
         this(inputStream);
         this.extensionDataLength = extensionDataLength;
     }
 
     /**
      * Reads a single byte from DataFrame's payload. The value byte is returned as an int in the range 0 to 255. If no byte is available because the end of the stream has been reached, the value -1 is returned.
+     *
      * @return A byte of payload
      * @throws IOException
      */
     @Override
     public int read() throws IOException {
-        if(currentDataFrameMetadata.payloadLength.equals(BigInteger.ZERO)){
+        if (currentDataFrameMetadata.payloadLength.equals(BigInteger.ZERO)) {
             try {
                 readDataFrameMetadata();
             } catch (UnknownOPCodeException e) {
@@ -38,7 +40,7 @@ public class DataFrameInputStream extends InputStream {
                 throw new IOException(e);
             }
         }
-        if(currentDataFrameMetadata.payloadLength.equals(BigInteger.ZERO)){
+        if (currentDataFrameMetadata.payloadLength.equals(BigInteger.ZERO)) {
             return -1;
         }
         this.currentDataFrameMetadata.payloadLength = this.currentDataFrameMetadata.payloadLength.subtract(BigInteger.ONE);
@@ -47,7 +49,7 @@ public class DataFrameInputStream extends InputStream {
         } else {
             //Performs a xor decryption
             int data = this.inputStream.read();
-            if(data == -1){
+            if (data == -1) {
                 return -1;
             }
             data ^= this.currentDataFrameMetadata.mask[currentMaskPosition];
@@ -60,22 +62,21 @@ public class DataFrameInputStream extends InputStream {
     @Override
     public byte[] readNBytes(int len) throws IOException {
         byte[] bytes;
-        if(this.currentDataFrameMetadata.OPCode == null || this.currentDataFrameMetadata.payloadLength.equals(BigInteger.ZERO)){
+        if (this.currentDataFrameMetadata.OPCode == null || this.currentDataFrameMetadata.payloadLength.equals(BigInteger.ZERO)) {
             try {
                 readDataFrameMetadata();
             } catch (UnknownOPCodeException e) {
                 throw new RuntimeException(e);
             }
         }
-        if(this.currentDataFrameMetadata.payloadLength.compareTo(new BigInteger(String.valueOf(len))) == 1){
+        if (this.currentDataFrameMetadata.payloadLength.compareTo(new BigInteger(String.valueOf(len))) == 1) {
             int length = this.currentDataFrameMetadata.payloadLength.intValue();
             bytes = new byte[length];
             for (int i = 0; i < length; i++) {
                 int value = this.read();
                 bytes[i] = (byte) value;
             }
-        }
-        else{
+        } else {
             bytes = new byte[len];
             for (int i = 0; i < len; i++) {
                 bytes[i] = (byte) this.read();
@@ -88,7 +89,7 @@ public class DataFrameInputStream extends InputStream {
     /**
      * Reads whole remaining DataFrame's payload. This method is not intended for fetching large amounts of data
      * (especially not larger than Integer.MAX_VALUE)
-    */
+     */
     @Override
     public byte[] readAllBytes() throws IOException {
         return this.readNBytes(this.currentDataFrameMetadata.payloadLength.intValue());
@@ -97,17 +98,17 @@ public class DataFrameInputStream extends InputStream {
 
     /**
      * Skips n bytes from the DataFrame's payload. If n is greater than payload length skips only to the next frame
+     *
      * @return Returns number of bytes skipped
      */
     @Override
     public long skip(long n) throws IOException {
         long skipped;
-        if(this.currentDataFrameMetadata.payloadLength.compareTo(new BigInteger(String.valueOf(n))) == 1){
+        if (this.currentDataFrameMetadata.payloadLength.compareTo(new BigInteger(String.valueOf(n))) == 1) {
             skipped = this.inputStream.skip(this.currentDataFrameMetadata.payloadLength.longValue());
             this.currentDataFrameMetadata.payloadLength = BigInteger.ZERO;
-        }
-        else{
-            skipped =  this.inputStream.skip(n);
+        } else {
+            skipped = this.inputStream.skip(n);
             this.currentDataFrameMetadata.payloadLength = this.currentDataFrameMetadata.payloadLength.subtract(new BigInteger(String.valueOf(n)));
 
         }
@@ -116,7 +117,7 @@ public class DataFrameInputStream extends InputStream {
 
     @Override
     public int available() throws IOException {
-        if(currentDataFrameMetadata.payloadLength.equals(BigInteger.ZERO) && this.inputStream.available() !=0 ){
+        if (currentDataFrameMetadata.payloadLength.equals(BigInteger.ZERO) && this.inputStream.available() != 0) {
             try {
                 readDataFrameMetadata();
             } catch (UnknownOPCodeException ignored) {
@@ -125,28 +126,28 @@ public class DataFrameInputStream extends InputStream {
         return this.inputStream.available();
     }
 
-    public void readDataFrameMetadata() throws IOException,UnknownOPCodeException {
+    public void readDataFrameMetadata() throws IOException, UnknownOPCodeException {
         this.currentDataFrameMetadata = new DataFrameMetadata();
         this.currentMaskPosition = 0;
         int first8bits = this.inputStream.read();
-        if(first8bits == -1){
+        if (first8bits == -1) {
             return;
         }
-        this.currentDataFrameMetadata.isFinished = getNthBit(first8bits,8);
-        this.currentDataFrameMetadata.RSV1 = getNthBit(first8bits,7);
-        this.currentDataFrameMetadata.RSV2 = getNthBit(first8bits,6);
-        this.currentDataFrameMetadata.RSV3 = getNthBit(first8bits,5);
+        this.currentDataFrameMetadata.isFinished = getNthBit(first8bits, 8);
+        this.currentDataFrameMetadata.RSV1 = getNthBit(first8bits, 7);
+        this.currentDataFrameMetadata.RSV2 = getNthBit(first8bits, 6);
+        this.currentDataFrameMetadata.RSV3 = getNthBit(first8bits, 5);
         getOPCode(first8bits);
         int maskAndPayload = this.inputStream.read();
-        this.currentDataFrameMetadata.hasMask = getNthBit(maskAndPayload,8);
+        this.currentDataFrameMetadata.hasMask = getNthBit(maskAndPayload, 8);
         getPayloadLength(maskAndPayload);
-        if(this.currentDataFrameMetadata.hasMask == 1){
+        if (this.currentDataFrameMetadata.hasMask == 1) {
             this.currentDataFrameMetadata.mask = new int[4];
-            for(int i=0;i<4;i++){
+            for (int i = 0; i < 4; i++) {
                 this.currentDataFrameMetadata.mask[i] = this.inputStream.read();
             }
         }
-        this.extensionData = File.createTempFile("ext","");
+        this.extensionData = File.createTempFile("ext", "");
         FileOutputStream extData = null;
         try {
             extData = new FileOutputStream(this.extensionData);
@@ -154,8 +155,7 @@ public class DataFrameInputStream extends InputStream {
                 extData.write(this.inputStream.read());
                 this.currentDataFrameMetadata.payloadLength = this.currentDataFrameMetadata.payloadLength.subtract(BigInteger.ONE);
             }
-        }
-        finally {
+        } finally {
             assert extData != null;
             extData.close();
         }
@@ -163,20 +163,18 @@ public class DataFrameInputStream extends InputStream {
 
     private void getPayloadLength(int maskAndPayload) throws IOException {
         int payloadLength = maskAndPayload & (0b1111111);
-        if(payloadLength < 126){
+        if (payloadLength < 126) {
             this.currentDataFrameMetadata.payloadLength = this.currentDataFrameMetadata.payloadLength.add(new BigInteger(String.valueOf(payloadLength)));
-        }
-        else if(payloadLength==126){
+        } else if (payloadLength == 126) {
             int first = this.inputStream.read();
             int second = this.inputStream.read();
             this.currentDataFrameMetadata.payloadLength = new BigInteger(String.valueOf(first));
             this.currentDataFrameMetadata.payloadLength = this.currentDataFrameMetadata.payloadLength.shiftLeft(8);
             this.currentDataFrameMetadata.payloadLength = this.currentDataFrameMetadata.payloadLength.add(new BigInteger(String.valueOf(second)));
-        }
-        else if(payloadLength==127){
+        } else if (payloadLength == 127) {
             int first = this.inputStream.read();
             this.currentDataFrameMetadata.payloadLength = new BigInteger(String.valueOf(first));
-            for(int i=0;i<7;i++){
+            for (int i = 0; i < 7; i++) {
                 int second = this.inputStream.read();
                 this.currentDataFrameMetadata.payloadLength = this.currentDataFrameMetadata.payloadLength.shiftLeft(8);
                 this.currentDataFrameMetadata.payloadLength = this.currentDataFrameMetadata.payloadLength.add(new BigInteger(String.valueOf(second)));
@@ -184,9 +182,10 @@ public class DataFrameInputStream extends InputStream {
         }
     }
 
-    private int getNthBit(int data,int bit){
-        return ((data & (1<<(bit-1)))>>(bit-1));
+    private int getNthBit(int data, int bit) {
+        return ((data & (1 << (bit - 1))) >> (bit - 1));
     }
+
     private void getOPCode(int data) throws UnknownOPCodeException {
         int OPCode = data & 15;
         switch (OPCode) {
@@ -209,19 +208,18 @@ public class DataFrameInputStream extends InputStream {
                 this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.PONG;
                 return;
         }
-        if(OPCode<8){
+        if (OPCode < 8) {
             this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.NON_CONTROL_FRAME;
-        }
-        else if(OPCode>10){
+        } else if (OPCode > 10) {
             this.currentDataFrameMetadata.OPCode = JSocket.Common.IO.Utility.OPCode.FURTHER_CONTROL_FRAME;
-        }
-        else{
+        } else {
             throw new UnknownOPCodeException("Unknown OPCode passed by a client");
         }
     }
 
     /**
      * Closes input stream
+     *
      * @throws IOException
      */
     @Override
@@ -232,13 +230,13 @@ public class DataFrameInputStream extends InputStream {
 
     /**
      * Returns extension data stream
+     *
      * @return Stream of bytes of extension data if extensionDataLength is not zero and null if extensionDataLength is zero
      */
     public InputStream getExtensionDataStream() {
         try {
             return new FileInputStream(extensionData);
-        }
-        catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             return null;
         }
     }

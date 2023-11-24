@@ -15,70 +15,67 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class JSocketServer implements Closeable,AutoCloseable {
+public class JSocketServer implements Closeable, AutoCloseable {
     private final ServerSocket server;
     private final Connection connection;
     private ThreadPoolExecutor tpe;
 
-    private final Map<String,Handleable> endpoints = new ConcurrentHashMap<>();
+    private final Map<String, Handleable> endpoints = new ConcurrentHashMap<>();
 
     public JSocketServer(Handleable defaultHandler, int port) throws ConnectionException {
-        this(defaultHandler, port,new BasicConnection(),false);
+        this(defaultHandler, port, new BasicConnection(), false);
     }
 
 
-    public JSocketServer(Handleable defaultHandler, int port,boolean ssl) throws ConnectionException {
-        this(defaultHandler, port,new BasicConnection(),ssl);
+    public JSocketServer(Handleable defaultHandler, int port, boolean ssl) throws ConnectionException {
+        this(defaultHandler, port, new BasicConnection(), ssl);
     }
 
 
     /**
-     *
      * @param defaultHandler implementation of an interface Handleable. Contains method handle which is called when client connects.
-     * @param port port on which server should operate.
-     * @param connection this argument should be passed as Connection implementation without client or connectionHandler set.
-     * @param ssl indicates whether the server should use SSL
+     * @param port           port on which server should operate.
+     * @param connection     this argument should be passed as Connection implementation without client or connectionHandler set.
+     * @param ssl            indicates whether the server should use SSL
      * @throws ConnectionException
      */
-    public JSocketServer(Handleable defaultHandler, int port, Connection connection,boolean ssl) throws ConnectionException {
+    public JSocketServer(Handleable defaultHandler, int port, Connection connection, boolean ssl) throws ConnectionException {
         try {
-            if(ssl)
+            if (ssl)
                 this.server = getSSLServerSocket(port);
             else
                 this.server = new ServerSocket(port);
             this.connection = connection;
-            this.endpoints.put("/",defaultHandler);
-        }
-        catch (IOException e){
+            this.endpoints.put("/", defaultHandler);
+        } catch (IOException e) {
             throw new ConnectionException("Could not open Socket on port " + port);
         }
     }
 
     public JSocketServer(Handleable defaultHandler, int port, Connection connection) throws ConnectionException {
-        this(defaultHandler,port,connection,false);
+        this(defaultHandler, port, connection, false);
     }
-
 
 
     public void runAsynchronously(int numberOfThreads) throws ConnectionException {
         this.tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(numberOfThreads);
-        while (true){
+        while (true) {
             try {
                 Connection c = (Connection) this.connection.clone();
                 c.setClient(this.server.accept());
                 tpe.execute(c);
-            }
-            catch (IOException e){
+            } catch (IOException e) {
                 throw new ConnectionException("Could not sustain connection with the client");
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
             }
         }
     }
+
     public void runSynchronously() throws ConnectionException {
         while (true) {
-                this.runOnce();
-            }
+            this.runOnce();
+        }
     }
 
     public void runOnce() throws ConnectionException {
@@ -96,16 +93,18 @@ public class JSocketServer implements Closeable,AutoCloseable {
 
     /**
      * Adds endpoint to the server. Endpoints should be added before server is started.
+     *
      * @param endpoint - endpoint to be added
-     * @param handler - implementation of Handleable interface
+     * @param handler  - implementation of Handleable interface
      */
-    public void addEndpoint(String endpoint, Handleable handler){
-        this.endpoints.put(endpoint,handler);
+    public void addEndpoint(String endpoint, Handleable handler) {
+        this.endpoints.put(endpoint, handler);
     }
+
     @Override
     public void close() throws IOException {
         this.server.close();
-        if(this.tpe != null) {
+        if (this.tpe != null) {
             this.tpe.shutdown();
         }
     }

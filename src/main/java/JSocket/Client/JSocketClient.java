@@ -13,48 +13,50 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-public class JSocketClient implements Closeable,AutoCloseable{
+public class JSocketClient implements Closeable, AutoCloseable {
     final Socket socket;
     final ConnectionIO connectionIO;
-    public JSocketClient(String host, int port,String connectionEndpoint,ConnectionSwitchHandler switchHandler,boolean ssl) throws IOException, ProtocolSwitchException {
-        if(ssl)
-            this.socket = createSSLSocket(host,port);
+
+    public JSocketClient(String host, int port, String connectionEndpoint, ConnectionSwitchHandler switchHandler, boolean ssl) throws IOException, ProtocolSwitchException {
+        if (ssl)
+            this.socket = createSSLSocket(host, port);
         else
-            this.socket = new Socket(host,port);
-        this.switchProtocolToWebsocket(switchHandler,connectionEndpoint,ssl);
+            this.socket = new Socket(host, port);
+        this.switchProtocolToWebsocket(switchHandler, connectionEndpoint, ssl);
         connectionIO = new ConnectionIO(this.socket);
     }
 
 
-    public JSocketClient(String host,int port, String connectionEndpoint,boolean ssl) throws IOException, ProtocolSwitchException {
-        this(host,port,connectionEndpoint,new BasicConnectionSwitchHandler(),ssl);
+    public JSocketClient(String host, int port, String connectionEndpoint, boolean ssl) throws IOException, ProtocolSwitchException {
+        this(host, port, connectionEndpoint, new BasicConnectionSwitchHandler(), ssl);
     }
 
-    public JSocketClient(String host,int port, String connectionEndpoint) throws IOException, ProtocolSwitchException {
-        this(host,port,connectionEndpoint,new BasicConnectionSwitchHandler(),false);
+    public JSocketClient(String host, int port, String connectionEndpoint) throws IOException, ProtocolSwitchException {
+        this(host, port, connectionEndpoint, new BasicConnectionSwitchHandler(), false);
     }
 
-    public JSocketClient(String host,int port,ConnectionSwitchHandler switchHandler) throws IOException, ProtocolSwitchException {
-        this(host,port,"/",switchHandler,false);
+    public JSocketClient(String host, int port, ConnectionSwitchHandler switchHandler) throws IOException, ProtocolSwitchException {
+        this(host, port, "/", switchHandler, false);
     }
 
-    public JSocketClient(String host,int port,boolean ssl) throws IOException, ProtocolSwitchException {
-        this(host,port,"/",new BasicConnectionSwitchHandler(),ssl);
+    public JSocketClient(String host, int port, boolean ssl) throws IOException, ProtocolSwitchException {
+        this(host, port, "/", new BasicConnectionSwitchHandler(), ssl);
     }
+
     public JSocketClient(URI connection) throws IOException, ProtocolSwitchException, URISyntaxException {
-        this(connection,new BasicConnectionSwitchHandler());
+        this(connection, new BasicConnectionSwitchHandler());
     }
 
-    public JSocketClient(URI connection,ConnectionSwitchHandler handler) throws IOException, ProtocolSwitchException, URISyntaxException {
-        if(!connection.getScheme().equals("ws") && !connection.getScheme().equals("wss"))
+    public JSocketClient(URI connection, ConnectionSwitchHandler handler) throws IOException, ProtocolSwitchException, URISyntaxException {
+        if (!connection.getScheme().equals("ws") && !connection.getScheme().equals("wss"))
             throw new ProtocolSwitchException("Invalid Protocol");
 
         boolean ssl = connection.getScheme().equals("wss");
-        if(ssl)
-            this.socket = createSSLSocket(connection.getHost(),connection.getPort());
+        if (ssl)
+            this.socket = createSSLSocket(connection.getHost(), connection.getPort());
         else
-            this.socket = new Socket(connection.getHost(),connection.getPort());
-        this.switchProtocolToWebsocket(handler,connection.getPath().isEmpty() ? "/" : connection.getPath(),ssl);
+            this.socket = new Socket(connection.getHost(), connection.getPort());
+        this.switchProtocolToWebsocket(handler, connection.getPath().isEmpty() ? "/" : connection.getPath(), ssl);
         connectionIO = new ConnectionIO(this.socket);
     }
 
@@ -62,17 +64,17 @@ public class JSocketClient implements Closeable,AutoCloseable{
         this(new URI(connection));
     }
 
-    public JSocketClient(String host,int port) throws IOException, ProtocolSwitchException {
-        this(host,port,"/",new BasicConnectionSwitchHandler(),false);
+    public JSocketClient(String host, int port) throws IOException, ProtocolSwitchException {
+        this(host, port, "/", new BasicConnectionSwitchHandler(), false);
     }
 
-    private void switchProtocolToWebsocket(ConnectionSwitchHandler connectionSwitchHandler, String connectionEndpoint,boolean ssl) throws IOException, ProtocolSwitchException {
-        connectionSwitchHandler.switchProtocol(this.socket, connectionEndpoint,ssl);
+    private void switchProtocolToWebsocket(ConnectionSwitchHandler connectionSwitchHandler, String connectionEndpoint, boolean ssl) throws IOException, ProtocolSwitchException {
+        connectionSwitchHandler.switchProtocol(this.socket, connectionEndpoint, ssl);
     }
 
     /**
-     *
      * Get an object responsible for data exchange between Server and Client
+     *
      * @return ConnectionIO
      */
     public ConnectionIO getConnectionIO() {
@@ -80,7 +82,7 @@ public class JSocketClient implements Closeable,AutoCloseable{
     }
 
     private Socket createSSLSocket(String host, int port) throws IOException {
-        return SSLSocketFactory.getDefault().createSocket(host,port);
+        return SSLSocketFactory.getDefault().createSocket(host, port);
     }
 
     @Override

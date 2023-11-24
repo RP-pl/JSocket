@@ -12,6 +12,7 @@ public class DataFrameOutputStream extends OutputStream {
     private final OutputStream outputStream;
 
     private DataFrameMetadata metadata;
+
     public DataFrameOutputStream(OutputStream output) {
         this.outputStream = output;
         //Default implementation
@@ -23,39 +24,39 @@ public class DataFrameOutputStream extends OutputStream {
 
     private int[] toIntArray(byte[] array) {
         int[] arr = new int[array.length];
-        for (int i=0;i<array.length;i++){
+        for (int i = 0; i < array.length; i++) {
             arr[i] = array[i];
         }
         return arr;
     }
-    private byte[] toByteArray(int[] array){
+
+    private byte[] toByteArray(int[] array) {
         byte[] arr = new byte[array.length];
-        for (int i=0;i<array.length;i++){
-            arr[i] = (byte)array[i];
+        for (int i = 0; i < array.length; i++) {
+            arr[i] = (byte) array[i];
         }
         return arr;
     }
 
     /**
-     *
-     * @param b   the {@code byte} of data to be written as a single DataFrame.
+     * @param b the {@code byte} of data to be written as a single DataFrame.
      * @throws IOException
      */
     @Override
     public void write(int b) throws IOException {
-       this.outputStream.write(assembleDataFrame(new byte[]{(byte) b}));
+        this.outputStream.write(assembleDataFrame(new byte[]{(byte) b}));
     }
 
     private byte[] assembleDataFrame(byte[] data) {
         int initialLength = data.length + 2;
         Length l = Length.BYTE;
-        if(this.metadata.hasMask == 1){
+        if (this.metadata.hasMask == 1) {
             initialLength += 4;
         }
-        if(data.length < 256*256 && 125< data.length){
-            initialLength +=2;
+        if (data.length < 256 * 256 && 125 < data.length) {
+            initialLength += 2;
             l = Length.BYTE_2;
-        } else if (data.length > 256*256) {
+        } else if (data.length > 256 * 256) {
             initialLength += 8;
             l = Length.BYTE_8;
         }
@@ -64,26 +65,24 @@ public class DataFrameOutputStream extends OutputStream {
         //FIN|RSV1|RSV2|RSV3|OPCode
         dataFrame[0] = (byte) (this.metadata.isFinished << 7 | this.metadata.RSV1 << 6 | this.metadata.RSV2 << 5 | this.metadata.RSV3 << 4 | returnOPCode(this.metadata.OPCode));
         //MASK|PAYLOAD
-        if(l == Length.BYTE){
-            dataFrame[1] = (byte) (this.metadata.hasMask<<7 |  data.length);
-        }
-        else if(l == Length.BYTE_2) {
+        if (l == Length.BYTE) {
+            dataFrame[1] = (byte) (this.metadata.hasMask << 7 | data.length);
+        } else if (l == Length.BYTE_2) {
             dataFrame[1] = (byte) (this.metadata.hasMask << 7 | 126);
             int g = data.length;
             for (int i = 0; i < 2; i++) {
                 dataFrame[1 + (2 - i)] = (byte) (g & 255);
                 g >>= 8;
             }
-            currentLength+=2;
-        }
-        else{
+            currentLength += 2;
+        } else {
             dataFrame[1] = (byte) (this.metadata.hasMask << 7 | 127);
             long g = data.length;
             for (int i = 0; i < 8; i++) {
                 dataFrame[1 + (8 - i)] = (byte) (g & 255);
                 g >>= 8;
             }
-            currentLength+=8;
+            currentLength += 8;
         }
         System.arraycopy(data, 0, dataFrame, currentLength, data.length);
         return dataFrame;
@@ -91,16 +90,18 @@ public class DataFrameOutputStream extends OutputStream {
 
     /**
      * Writes bytes from the specified byte array
-     * @param b   the {@code bytes} of data to be written as a single DataFrame.
+     *
+     * @param b the {@code bytes} of data to be written as a single DataFrame.
      * @throws IOException
      */
     @Override
     public void write(byte @NotNull [] b) throws IOException {
         this.outputStream.write(assembleDataFrame(b));
     }
+
     public void pong(byte[] dataFrameBytes) throws IOException {
         byte[] df = assembleDataFrame(dataFrameBytes);
-        df[0] = (byte) (((df[0]|0b1111))&(returnOPCode(OPCode.PONG)));
+        df[0] = (byte) (((df[0] | 0b1111)) & (returnOPCode(OPCode.PONG)));
         this.outputStream.write(df);
     }
 
@@ -115,11 +116,12 @@ public class DataFrameOutputStream extends OutputStream {
     /**
      * Returns binary representation of a given OPCode.
      * WARNING: NON_CONTROL_FRAME and FURTHER_CONTROL_FRAME not implemented!!!
+     *
      * @param opCode OPCode of the DataFrame
      * @return Binary representation of a given OPCode
      */
-    private byte returnOPCode(OPCode opCode){
-        switch (opCode){
+    private byte returnOPCode(OPCode opCode) {
+        switch (opCode) {
             case CONTINUATION_FRAME -> {
                 return 0b0;
             }

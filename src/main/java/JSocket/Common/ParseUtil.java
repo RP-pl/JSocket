@@ -4,17 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ParseUtil {
-    public static Map<String,String> parseHttpRequest(String requestData) {
-        Map<String,String> headers = new HashMap<>();
+    public static Map<String, String> parseHttpRequest(String requestData) {
+        Map<String, String> headers = new HashMap<>();
         String[] reqDta = requestData.split("\r\n");
         String endpoint = reqDta[0].split(" ")[1];
-        headers.put("endpoint",endpoint);
+        headers.put("endpoint", endpoint);
         boolean dataFlag = false;
-        for (int i=1;i<reqDta.length;i++) {
-            if(!reqDta[i].contains(": ")){
+        for (int i = 1; i < reqDta.length; i++) {
+            if (!reqDta[i].contains(": ")) {
                 dataFlag = true;
             }
-            if(!dataFlag) {
+            if (!dataFlag) {
                 String[] kv = reqDta[i].split(": ");
                 headers.put(kv[0], kv[1]);
             }

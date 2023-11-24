@@ -22,7 +22,7 @@ import static JSocket.Common.ParseUtil.parseHttpRequest;
  * Prone to Denial-of-Service attack.
  */
 public class BasicConnection extends Connection {
-    private Map<String,Handleable> endpoints;
+    private Map<String, Handleable> endpoints;
     private Socket client;
     private MessageDigest sha1;
     private InputStream input;
@@ -30,22 +30,22 @@ public class BasicConnection extends Connection {
     private static final Set<String> connectedClients = Collections.synchronizedSet(new HashSet<>());
     private Handleable handler;
 
-    public BasicConnection(Socket client, Map<String,Handleable> endpoints){
+    public BasicConnection(Socket client, Map<String, Handleable> endpoints) {
         this.client = client;
         this.endpoints = endpoints;
         try {
             this.sha1 = MessageDigest.getInstance("SHA-1");
-        }
-        catch (NoSuchAlgorithmException ignored){
+        } catch (NoSuchAlgorithmException ignored) {
         }
     }
-    public BasicConnection(){
+
+    public BasicConnection() {
         try {
             this.sha1 = MessageDigest.getInstance("SHA-1");
-        }
-        catch (NoSuchAlgorithmException ignored){
+        } catch (NoSuchAlgorithmException ignored) {
         }
     }
+
     @Override
     public void run() {
         try {
@@ -54,43 +54,44 @@ public class BasicConnection extends Connection {
             doHandshake();
             try {
                 handler.handle(new ConnectionIO(this.client));
-            }
-            catch (ConnectionCloseException e){
+            } catch (ConnectionCloseException e) {
                 this.client.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
     @Override
     protected void doHandshake() throws IOException {
-        Scanner inputScanner = new Scanner(this.input,StandardCharsets.UTF_8);
+        Scanner inputScanner = new Scanner(this.input, StandardCharsets.UTF_8);
         inputScanner.useDelimiter("\\r\\n\\r\\n");
-        Map<String,String> headers = parseHttpRequest(inputScanner.next());
-        this.handler = this.endpoints.getOrDefault(headers.get("endpoint"),this.endpoints.get("/"));
+        Map<String, String> headers = parseHttpRequest(inputScanner.next());
+        this.handler = this.endpoints.getOrDefault(headers.get("endpoint"), this.endpoints.get("/"));
         String key = getWebSocketKey(headers);
         byte[] response = ("HTTP/1.1 101 Switching Protocols\r\n" +
                 "Upgrade: websocket\r\n" +
-                "Connection: Upgrade\r\n"+
-                "Sec-WebSocket-Accept: " + key + "\r\n"+"\r\n").getBytes(StandardCharsets.UTF_8);
-        this.output.write(response,0, response.length);
+                "Connection: Upgrade\r\n" +
+                "Sec-WebSocket-Accept: " + key + "\r\n" + "\r\n").getBytes(StandardCharsets.UTF_8);
+        this.output.write(response, 0, response.length);
 
     }
 
 
-    private String getWebSocketKey(Map<String,String> headers){
+    private String getWebSocketKey(Map<String, String> headers) {
         String clientKey = headers.get("Sec-WebSocket-Key");
         String key = clientKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
         byte[] hash = this.sha1.digest(key.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(hash);
     }
+
     @Override
-    public void setClient(Socket client){
+    public void setClient(Socket client) {
         this.client = client;
     }
 
     @Override
-    public void setEndpoints(Map<String,Handleable> endpoints){
+    public void setEndpoints(Map<String, Handleable> endpoints) {
         this.endpoints = endpoints;
     }
 
