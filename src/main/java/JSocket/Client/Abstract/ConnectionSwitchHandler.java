@@ -12,7 +12,9 @@ public interface ConnectionSwitchHandler {
      * @param socket - Socket to switch the protocol of
      * @param connectionEndpoint - An endpoint to which client should connect to
      */
-    public void switchProtocol(Socket socket,String connectionEndpoint) throws IOException, ProtocolSwitchException;
+    void switchProtocol(Socket socket, String connectionEndpoint, boolean ssl) throws IOException, ProtocolSwitchException;
 
-    public void switchProtocol(Socket socket) throws IOException, ProtocolSwitchException;
+    void switchProtocol(Socket socket) throws IOException, ProtocolSwitchException;
+
+    void switchProtocol(Socket socket, boolean ssl) throws IOException, ProtocolSwitchException;
 }

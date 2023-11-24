@@ -5,6 +5,8 @@ import JSocket.Server.Abstract.Handleable;
 import JSocket.Server.Exceptions.ConnectionException;
 import JSocket.Server.Utility.BasicConnection;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -15,32 +17,48 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class JSocketServer implements Closeable,AutoCloseable {
     private final ServerSocket server;
-    private Connection connection;
+    private final Connection connection;
     private ThreadPoolExecutor tpe;
 
     private final Map<String,Handleable> endpoints = new ConcurrentHashMap<>();
 
     public JSocketServer(Handleable defaultHandler, int port) throws ConnectionException {
-        try {
-            this.server = new ServerSocket(port);
-            this.connection = new BasicConnection();
-            this.endpoints.put("/",defaultHandler);
-        }
-        catch (IOException e){
-            throw new ConnectionException("Could not open Socket on port " + String.valueOf(port));
-        }
+        this(defaultHandler, port,new BasicConnection(),false);
     }
+
+
+    public JSocketServer(Handleable defaultHandler, int port,boolean ssl) throws ConnectionException {
+        this(defaultHandler, port,new BasicConnection(),ssl);
+    }
+
+
     /**
      *
      * @param defaultHandler implementation of an interface Handleable. Contains method handle which is called when client connects.
      * @param port port on which server should operate.
      * @param connection this argument should be passed as Connection implementation without client or connectionHandler set.
+     * @param ssl indicates whether the server should use SSL
      * @throws ConnectionException
      */
-    public JSocketServer(Handleable defaultHandler, int port, Connection connection) throws ConnectionException {
-        this(defaultHandler, port);
-        this.connection = connection;
+    public JSocketServer(Handleable defaultHandler, int port, Connection connection,boolean ssl) throws ConnectionException {
+        try {
+            if(ssl)
+                this.server = getSSLServerSocket(port);
+            else
+                this.server = new ServerSocket(port);
+            this.connection = connection;
+            this.endpoints.put("/",defaultHandler);
+        }
+        catch (IOException e){
+            throw new ConnectionException("Could not open Socket on port " + port);
+        }
     }
+
+    public JSocketServer(Handleable defaultHandler, int port, Connection connection) throws ConnectionException {
+        this(defaultHandler,port,connection,false);
+    }
+
+
     public void runAsynchronously(int numberOfThreads) throws ConnectionException {
         this.tpe = (ThreadPoolExecutor) Executors.newFixedThreadPool(numberOfThreads);
         while (true){
@@ -89,5 +107,11 @@ public class JSocketServer implements Closeable,AutoCloseable {
         if(this.tpe != null) {
             this.tpe.shutdown();
         }
+    }
+
+    private ServerSocket getSSLServerSocket(int port) throws IOException {
+        SSLServerSocket socket = (SSLServerSocket) SSLServerSocketFactory.getDefault().createServerSocket(port);
+        socket.setNeedClientAuth(false);
+        return socket;
     }
 }

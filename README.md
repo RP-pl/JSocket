@@ -15,7 +15,7 @@ server.runSynchronously();
 
 ### Client
 ```java
-JSocketClient client = new JSocketClient("http://localhost:8080");
+JSocketClient client = new JSocketClient("ws://localhost:8080");
 ConnectionIO io = client.getConnectionIO();
 io.writeString("Hello World!");
 System.out.println(io.readString(false));

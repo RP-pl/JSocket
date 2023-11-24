@@ -3,6 +3,7 @@ package JSocket.Client.Utility;
 import JSocket.Client.Exceptions.ProtocolSwitchException;
 import JSocket.Client.Abstract.ConnectionSwitchHandler;
 
+import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +17,7 @@ public class BasicConnectionSwitchHandler implements ConnectionSwitchHandler {
     }
 
     @Override
-    public void switchProtocol(Socket socket,String connectionEndpoint) throws IOException, ProtocolSwitchException {
+    public void switchProtocol(Socket socket,String connectionEndpoint,boolean ssl) throws IOException, ProtocolSwitchException {
 
         MessageDigest sha1;
         try {
@@ -24,6 +25,11 @@ public class BasicConnectionSwitchHandler implements ConnectionSwitchHandler {
         }
         catch (Exception e){
             throw new RuntimeException(e);
+        }
+
+        if(ssl){
+            SSLSocket sslSocket = (SSLSocket) socket;
+            sslSocket.startHandshake();
         }
 
         UUID guid = UUID.randomUUID();
@@ -48,6 +54,11 @@ public class BasicConnectionSwitchHandler implements ConnectionSwitchHandler {
 
     @Override
     public void switchProtocol(Socket socket) throws IOException, ProtocolSwitchException {
-        this.switchProtocol(socket,"/");
+        this.switchProtocol(socket,"/",false);
+    }
+
+    @Override
+    public void switchProtocol(Socket socket, boolean ssl) throws IOException, ProtocolSwitchException {
+        this.switchProtocol(socket,"/",ssl);
     }
 }

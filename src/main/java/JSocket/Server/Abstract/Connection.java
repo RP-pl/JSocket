@@ -1,6 +1,8 @@
 package JSocket.Server.Abstract;
 
+import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 
@@ -25,4 +27,5 @@ public abstract class Connection implements Runnable,Cloneable {
     }
 
     public abstract void setEndpoints(Map<String, Handleable> endpoints);
+
 }

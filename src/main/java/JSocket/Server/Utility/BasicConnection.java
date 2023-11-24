@@ -5,7 +5,9 @@ import JSocket.Server.Exceptions.ConnectionCloseException;
 import JSocket.Common.IO.ConnectionIO;
 import JSocket.Server.Abstract.Handleable;
 
+import javax.net.ssl.SSLServerSocketFactory;
 import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -91,4 +93,5 @@ public class BasicConnection extends Connection {
     public void setEndpoints(Map<String,Handleable> endpoints){
         this.endpoints = endpoints;
     }
+
 }
