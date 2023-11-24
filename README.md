@@ -4,12 +4,18 @@ Supports multiple clients and multiple threads.
 ## Usage
 ### Server
 ```java
-JSocketServer server = new JSocketServer(8080);
-Handleable h = (io, message) -> {
+Handleable defaultHandler = (io, message) -> {
     System.out.println("Received message: " + message);
     io.writeString("Hello from server!");
 };
-server.addEndpoint("/test", h);
+
+Handleable endpointHandler = (io, message) -> {
+    System.out.println("Received message: " + message);
+    io.writeString("Hello from /test!");
+};
+        
+JSocketServer server = new JSocketServer(8080,defaultHandler);
+server.addEndpoint("/test", endpointHandler);
 server.runSynchronously();
 ```
 
