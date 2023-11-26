@@ -1,5 +1,7 @@
 package JSocket.Server.Abstract;
 
+import JSocket.Server.Exceptions.ConnectionRefusedException;
+
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,14 +15,18 @@ public abstract class Connection implements Runnable, Cloneable {
      *
      * @throws IOException
      */
-    protected abstract void doHandshake() throws IOException;
+    protected abstract void doHandshake() throws IOException, ConnectionRefusedException;
+
 
     /**
-     * This method allows you to pass some initial data to the handler.
-     * It has to call {@code  handler.handle(connection);}
+     * Used to make handler aware of client connection.
      */
     public abstract void run();
 
+    /**
+     * Called by JSocketServer to set client socket.
+     * @param client - client socket
+     */
     public abstract void setClient(Socket client);
 
     @Override
@@ -28,6 +34,10 @@ public abstract class Connection implements Runnable, Cloneable {
         return super.clone();
     }
 
+    /**
+     * Called by JSocketServer to set endpoints.
+     * @param endpoints - map of endpoints
+     */
     public abstract void setEndpoints(Map<String, Handleable> endpoints);
 
 }

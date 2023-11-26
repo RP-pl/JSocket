@@ -46,7 +46,7 @@ public class BasicConnectionSwitchHandler implements ConnectionSwitchHandler {
         Scanner inputScanner = new Scanner(socket.getInputStream(), StandardCharsets.UTF_8);
         inputScanner.useDelimiter("\\r\\n\\r\\n");
         Map<String, String> headers = parseHttpRequest(inputScanner.next());
-        if (!headers.get("Upgrade").equals("websocket")) {
+        if (!headers.containsKey("Upgrade") || !headers.get("Upgrade").equals("websocket")) {
             throw new ProtocolSwitchException("Server did not accept websocket protocol");
         }
     }

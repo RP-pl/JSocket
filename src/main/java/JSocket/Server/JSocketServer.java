@@ -10,8 +10,9 @@ import javax.net.ssl.SSLServerSocketFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -20,7 +21,7 @@ public class JSocketServer implements Closeable, AutoCloseable {
     private final Connection connection;
     private ThreadPoolExecutor tpe;
 
-    private final Map<String, Handleable> endpoints = new ConcurrentHashMap<>();
+    private final Map<String, Handleable> endpoints = Collections.synchronizedMap(new TreeMap<>());
 
     public JSocketServer(Handleable defaultHandler, int port) throws ConnectionException {
         this(defaultHandler, port, new BasicConnection(), false);
@@ -54,6 +55,18 @@ public class JSocketServer implements Closeable, AutoCloseable {
 
     public JSocketServer(Handleable defaultHandler, int port, Connection connection) throws ConnectionException {
         this(defaultHandler, port, connection, false);
+    }
+
+    public JSocketServer(int port, Connection connection) throws ConnectionException {
+        this(null, port, connection, false);
+    }
+
+    public JSocketServer(int port, Connection connection, boolean ssl) throws ConnectionException {
+        this(null, port, connection, ssl);
+    }
+
+    public JSocketServer(int port) throws ConnectionException {
+        this(null, port, new BasicConnection(), false);
     }
 
 

@@ -4,6 +4,7 @@ import JSocket.Server.Abstract.Connection;
 import JSocket.Server.Exceptions.ConnectionCloseException;
 import JSocket.Common.IO.ConnectionIO;
 import JSocket.Server.Abstract.Handleable;
+import JSocket.Server.Exceptions.ConnectionRefusedException;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.*;
@@ -30,15 +31,6 @@ public class BasicConnection extends Connection {
     private static final Set<String> connectedClients = Collections.synchronizedSet(new HashSet<>());
     private Handleable handler;
 
-    public BasicConnection(Socket client, Map<String, Handleable> endpoints) {
-        this.client = client;
-        this.endpoints = endpoints;
-        try {
-            this.sha1 = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException ignored) {
-        }
-    }
-
     public BasicConnection() {
         try {
             this.sha1 = MessageDigest.getInstance("SHA-1");
@@ -51,10 +43,10 @@ public class BasicConnection extends Connection {
         try {
             this.input = client.getInputStream();
             this.output = client.getOutputStream();
-            doHandshake();
-            try {
+            try{
+                doHandshake();
                 handler.handle(new ConnectionIO(this.client));
-            } catch (ConnectionCloseException e) {
+            } catch (ConnectionCloseException | ConnectionRefusedException e) {
                 this.client.close();
             }
         } catch (IOException e) {
@@ -63,18 +55,32 @@ public class BasicConnection extends Connection {
     }
 
     @Override
-    protected void doHandshake() throws IOException {
+    protected void doHandshake() throws IOException, ConnectionRefusedException {
         Scanner inputScanner = new Scanner(this.input, StandardCharsets.UTF_8);
         inputScanner.useDelimiter("\\r\\n\\r\\n");
         Map<String, String> headers = parseHttpRequest(inputScanner.next());
         this.handler = this.endpoints.getOrDefault(headers.get("endpoint"), this.endpoints.get("/"));
-        String key = getWebSocketKey(headers);
-        byte[] response = ("HTTP/1.1 101 Switching Protocols\r\n" +
-                "Upgrade: websocket\r\n" +
-                "Connection: Upgrade\r\n" +
-                "Sec-WebSocket-Accept: " + key + "\r\n" + "\r\n").getBytes(StandardCharsets.UTF_8);
-        this.output.write(response, 0, response.length);
-
+        System.out.println(this.handler);
+        byte[] response;
+        if (this.handler == null) {
+            response = (
+                    "HTTP/1.1 406 Not Acceptable\r\n"+
+                    "Content-Type: text/plain\r\n"+
+                    "Content-Length: 14\r\n"+
+                    "Not Acceptable\r\n\r\n"
+            ).getBytes(StandardCharsets.UTF_8);
+            this.output.write(response, 0, response.length);
+            throw new ConnectionRefusedException("No endpoint found");
+        }
+        else {
+            String key = getWebSocketKey(headers);
+            response = ("HTTP/1.1 101 Switching Protocols\r\n" +
+                    "Upgrade: websocket\r\n" +
+                    "Connection: Upgrade\r\n" +
+                    "Sec-WebSocket-Accept: " + key + "\r\n" + "\r\n"
+            ).getBytes(StandardCharsets.UTF_8);
+            this.output.write(response, 0, response.length);
+        }
     }
 
 
