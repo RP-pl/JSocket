@@ -14,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static JSocket.Common.ParseUtil.parseHttpRequest;
 
@@ -28,7 +30,8 @@ public class BasicConnection extends Connection {
     private MessageDigest sha1;
     private InputStream input;
     private OutputStream output;
-    private static final Set<String> connectedClients = Collections.synchronizedSet(new HashSet<>());
+    private final Pattern pathVariableRegex =  Pattern.compile("/.*\\{[a-zA-Z0-9]+\\}/.*");
+    private final Map<String,String> pathVariables = new HashMap<>();
     private Handleable handler;
 
     public BasicConnection() {
@@ -45,7 +48,7 @@ public class BasicConnection extends Connection {
             this.output = client.getOutputStream();
             try{
                 doHandshake();
-                handler.handle(new ConnectionIO(this.client));
+                handler.handle(new ConnectionIO(this.client), this.pathVariables);
             } catch (ConnectionCloseException | ConnectionRefusedException e) {
                 this.client.close();
             }
@@ -59,7 +62,7 @@ public class BasicConnection extends Connection {
         Scanner inputScanner = new Scanner(this.input, StandardCharsets.UTF_8);
         inputScanner.useDelimiter("\\r\\n\\r\\n");
         Map<String, String> headers = parseHttpRequest(inputScanner.next());
-        this.handler = this.endpoints.getOrDefault(headers.get("endpoint"), this.endpoints.get("/"));
+        this.handler = getHandler(headers.get("endpoint"));
         System.out.println(this.handler);
         byte[] response;
         if (this.handler == null) {
@@ -84,6 +87,31 @@ public class BasicConnection extends Connection {
     }
 
 
+    private Handleable getHandler(String endpoint) {
+
+        for(String key : this.endpoints.keySet()) {
+            Matcher m = this.pathVariableRegex.matcher(key);
+            if(m.matches()){
+                String[] path = key.split("/");
+                String[] endpointPath = endpoint.split("/");
+                if(path.length != endpointPath.length){
+                    continue;
+                }
+                for(int i = 0; i < path.length; i++){
+                    if(path[i].equals(endpointPath[i])){
+                        continue;
+                    }
+                    if(path[i].startsWith("{") && path[i].endsWith("}")){
+                        this.pathVariables.put(path[i].substring(1,path[i].length()-1),endpointPath[i]);
+                        continue;
+                    }
+                    break;
+                }
+                return this.endpoints.get(key);
+            }
+        }
+        return this.endpoints.getOrDefault(endpoint, this.endpoints.get("/"));
+    }
     private String getWebSocketKey(Map<String, String> headers) {
         String clientKey = headers.get("Sec-WebSocket-Key");
         String key = clientKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";

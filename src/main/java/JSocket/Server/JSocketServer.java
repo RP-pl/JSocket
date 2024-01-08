@@ -15,11 +15,14 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.regex.Pattern;
 
 public class JSocketServer implements Closeable, AutoCloseable {
     private final ServerSocket server;
     private final Connection connection;
     private ThreadPoolExecutor tpe;
+
+    private Pattern pathVariableRegex =  Pattern.compile("\\{[a-zA-Z0-9]+\\}");
 
     private final Map<String, Handleable> endpoints = Collections.synchronizedMap(new TreeMap<>());
 
@@ -111,6 +114,7 @@ public class JSocketServer implements Closeable, AutoCloseable {
      * @param handler  - implementation of Handleable interface
      */
     public void addEndpoint(String endpoint, Handleable handler) {
+
         this.endpoints.put(endpoint, handler);
     }
 
