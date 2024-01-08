@@ -2,9 +2,7 @@ package JSocket.Server.Abstract;
 
 import JSocket.Server.Exceptions.ConnectionRefusedException;
 
-import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 
