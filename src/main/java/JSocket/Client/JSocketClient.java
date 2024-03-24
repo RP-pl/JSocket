@@ -18,6 +18,10 @@ public class JSocketClient implements Closeable, AutoCloseable {
     final ConnectionIO connectionIO;
 
     public JSocketClient(String host, int port, String connectionEndpoint, ConnectionSwitchHandler switchHandler, boolean ssl) throws IOException, ProtocolSwitchException {
+        if(host == null || host.isEmpty())
+            throw new IllegalArgumentException("Host cannot be null or empty");
+        if(port < 0 || port > 65535)
+            throw new IllegalArgumentException("Port must be between 0 and 65535");
         if (ssl)
             this.socket = createSSLSocket(host, port);
         else
@@ -49,7 +53,7 @@ public class JSocketClient implements Closeable, AutoCloseable {
 
     public JSocketClient(URI connection, ConnectionSwitchHandler handler) throws IOException, ProtocolSwitchException, URISyntaxException {
         if (!connection.getScheme().equals("ws") && !connection.getScheme().equals("wss"))
-            throw new ProtocolSwitchException("Invalid Protocol");
+            throw new ProtocolSwitchException("Invalid Protocol. Only ws and wss are supported.");
 
         boolean ssl = connection.getScheme().equals("wss");
         if (ssl)
@@ -87,6 +91,6 @@ public class JSocketClient implements Closeable, AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        this.socket.close();
+        this.connectionIO.close();
     }
 }
